@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영화 상세 정보</title>
+    <style>
+        body {
+            background-color: #141414;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background-color: #222;
+            border-radius: 10px;
+        }
+        .movie-details img {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .movie-details h1 {
+            text-align: center;
+        }
+        .comment-section {
+            margin-top: 20px;
+        }
+        .comment-form input, .comment-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        .comment-form button {
+            width: 100%;
+            padding: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .comment {
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .comment strong {
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="movie-details" id="movie-details"></div>
+
+        <div class="comment-section">
+            <h2>댓글</h2>
+            <div class="comment-form">
+                <input type="text" id="author" placeholder="이름을 입력하세요">
+                <textarea id="content" placeholder="댓글을 입력하세요"></textarea>
+                <button onclick="submitComment()">댓글 작성</button>
+            </div>
+            <div id="comments"></div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const movieId = urlParams.get('id');
+
+        async function fetchMovieDetails() {
+            try {
+                const response = await fetch(`http://localhost:3000/movie/${movieId}`);
+                const movie = await response.json();
+
+                if (movie.error) {
+                    document.getElementById('movie-details').innerHTML = "<p>영화를 찾을 수 없습니다.</p>";
+                    return;
+                }
+
+                document.getElementById('movie-details').innerHTML = `
+                    <img src="https://image.tmdb.org/t/p/w500/${movie.backdrop_path}" class="backdrop" alt="${movie.title}">
+                    <img src="https://image.tmdb.org/t/p/w500/${movie.poster_path}" class="poster" alt="${movie.title}">
+                    <h1>${movie.title} (${movie.release_date})</h1>
+                    <p><strong>원제:</strong> ${movie.original_title}</p>
+                    <p>${movie.overview}</p>
+                    <a href="index.html" class="back-button">뒤로가기</a>
+                `;
+
+                fetchComments();
+            } catch (error) {
+                document.getElementById('movie-details').innerHTML = "<p>영화 정보를 불러오는 중 오류가 발생했습니다.</p>";
+            }
+        }
+
+        async function fetchComments() {
+            try {
+                const response = await fetch(`http://localhost:3000/comments/${movieId}`);
+                const comments = await response.json();
+                const commentsContainer = document.getElementById('comments');
+
+                commentsContainer.innerHTML = "";
+                comments.forEach(comment => {
+                    const commentElement = document.createElement('div');
+                    commentElement.classList.add('comment');
+                    commentElement.innerHTML = `
+                        <strong>${comment.author}</strong> <small>(${comment.created_at})</small>
+                        <p>${comment.content}</p>
+                    `;
+                    commentsContainer.appendChild(commentElement);
+                });
+            } catch (error) {
+                console.error("댓글을 불러오는 중 오류 발생:", error);
+            }
+        }
+
+        async function submitComment() {
+            const author = document.getElementById('author').value.trim();
+            const content = document.getElementById('content').value.trim();
+
+            if (!author || !content) {
+                alert("이름과 댓글을 입력해주세요.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/comments`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ movie_id: movieId, author, content })
+                });
+
+                if (!response.ok) {
+                    throw new Error("댓글 작성 실패");
+                }
+
+                document.getElementById('author').value = "";
+                document.getElementById('content').value = "";
+
+                fetchComments();
+            } catch (error) {
+                console.error("댓글 작성 중 오류 발생:", error);
+            }
+        }
+
+        fetchMovieDetails();
+    </script>
+
+</body>
+</html>

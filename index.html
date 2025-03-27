@@ -31,8 +31,12 @@
             background-color: #222;
             padding: 10px;
             border-radius: 10px;
-            overflow: hidden;
             text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .movie:hover {
+            transform: scale(1.05);
         }
         .movie img {
             width: 100%;
@@ -64,12 +68,16 @@
                 movies.forEach(movie => {
                     const movieElement = document.createElement('div');
                     movieElement.classList.add('movie');
+                    movieElement.setAttribute('data-id', movie.id);
                     movieElement.innerHTML = `
                         <img src="https://image.tmdb.org/t/p/w500/${movie.poster_path}" alt="${movie.title}">
                         <h3>${movie.title}</h3>
                         <p>${movie.original_title}</p>
                         <p>${movie.release_date}</p>
                     `;
+                    movieElement.addEventListener('click', () => {
+                        window.location.href = `movie.html?id=${movie.id}`;
+                    });
                     moviesContainer.appendChild(movieElement);
                 });
             } catch (error) {
