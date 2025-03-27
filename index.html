@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영화 리스트</title>
+    <style>
+        body {
+            background-color: #141414;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 90%;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .movies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        .movie {
+            width: 200px;
+            background-color: #222;
+            padding: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            text-align: center;
+        }
+        .movie img {
+            width: 100%;
+            border-radius: 5px;
+        }
+        .movie h3 {
+            font-size: 16px;
+            margin: 10px 0 5px;
+        }
+        .movie p {
+            font-size: 12px;
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>영화 리스트</h1>
+        <div class="movies" id="movies"></div>
+    </div>
+
+    <script>
+        async function fetchMovies() {
+            try {
+                const response = await fetch('http://localhost:3000/movies');
+                const movies = await response.json();
+                const moviesContainer = document.getElementById('movies');
+                
+                movies.forEach(movie => {
+                    const movieElement = document.createElement('div');
+                    movieElement.classList.add('movie');
+                    movieElement.innerHTML = `
+                        <img src="https://image.tmdb.org/t/p/w500/${movie.poster_path}" alt="${movie.title}">
+                        <h3>${movie.title}</h3>
+                        <p>${movie.original_title}</p>
+                        <p>${movie.release_date}</p>
+                    `;
+                    moviesContainer.appendChild(movieElement);
+                });
+            } catch (error) {
+                console.error("영화를 불러오는 중 오류 발생:", error);
+            }
+        }
+        
+        fetchMovies();
+    </script>
+</body>
+</html>
